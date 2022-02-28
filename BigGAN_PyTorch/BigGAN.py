@@ -19,7 +19,7 @@ import torch.nn.functional as F
 
 # from torch.nn import Parameter as P
 import sys
-
+FIRST_CCBN_ONLY = False  # only first gen layer has ccbn
 sys.path.insert(1, os.path.join(sys.path[0], ".."))
 import BigGAN_PyTorch.layers as layers
 
@@ -247,6 +247,16 @@ class Generator(nn.Module):
         # to be over blocks at a given resolution (resblocks and/or self-attention)
         # while the inner loop is over a given block
         self.blocks = []
+        norm_bn = functools.partial(
+            layers.bn,
+            which_linear=bn_linear,
+            cross_replica=self.cross_replica,
+            mybn=self.mybn,
+            input_size=input_sz_bn,
+            norm_style=self.norm_style,
+            eps=self.BN_eps,
+        )
+        print(f"FIRST_CCBN_ONLY: {FIRST_CCBN_ONLY}")
         for index in range(len(self.arch["out_channels"])):
             self.blocks += [
                 [
@@ -254,7 +264,7 @@ class Generator(nn.Module):
                         in_channels=self.arch["in_channels"][index],
                         out_channels=self.arch["out_channels"][index],
                         which_conv=self.which_conv,
-                        which_bn=self.which_bn,
+                        which_bn=norm_bn if index != 0 and FIRST_CCBN_ONLY else self.which_bn,
                         activation=self.activation,
                         upsample=(
                             functools.partial(F.interpolate, scale_factor=2)

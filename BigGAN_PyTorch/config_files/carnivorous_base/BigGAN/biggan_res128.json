@@ -1,5 +1,6 @@
 {
   "experiment_name": "biggan_imagenet_res128",
+  "which_dataset": "carnivorous_base",
   "run_setup": "local_debug",
   "deterministic_run": true,
   "num_workers": 10,
