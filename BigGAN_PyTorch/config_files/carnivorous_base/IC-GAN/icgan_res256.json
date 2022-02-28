@@ -1,5 +1,6 @@
 {
   "experiment_name": "icgan_biggan_carnivorous_base_res256",
+  "which_dataset": "carnivorous_base",
   "run_setup": "local_debug",
   "deterministic_run": true,
   "num_workers": 10,

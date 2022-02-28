@@ -4,9 +4,9 @@
 
 resolution=$2 # 64,128,256
 dataset=$1 #'imagenet', 'imagenet_lt',  'coco', [a transfer dataset, such as 'cityscapes']
-out_path='/home/xinyu/dataset/carnivorous_base_hdf5'
+out_path='/home/xinyu_gong/dataset/carnivorous_base_hdf5'
 path_imnet=''
-path_swav='/home/xinyu/project/ic_gan/pretrained_models_path/swav_pretrained.pth.tar'
+path_swav='/home/xinyu_gong/project/ic_gan/pretrained_models_path/swav_pretrained.pth.tar'
 path_classifier_lt='resnet50_uniform_e90.pth'
 
 
@@ -53,9 +53,9 @@ elif [ $dataset = 'coco' ]; then
   done
 # Transfer datasets
 else
-  python data_utils/make_hdf5.py --resolution $resolution --which_dataset $dataset --split 'train' --data_root $3 --feature_extractor 'classification' --out_path $out_path
+  python data_utils/make_hdf5.py --resolution $resolution --which_dataset $dataset --split 'train' --data_root $3 --feature_extractor 'classification' --out_path $out_path --feature_augmentation
     # Compute NNs
-  python data_utils/make_hdf5.py --resolution $resolution --which_dataset $dataset --split 'train' --data_root $3 --feature_extractor 'selfsupervised' --pretrained_model_path $path_swav --save_features_only --out_path $out_path
+  python data_utils/make_hdf5.py --resolution $resolution --which_dataset $dataset --split 'train' --data_root $3 --feature_extractor 'selfsupervised' --pretrained_model_path $path_swav --save_features_only --out_path $out_path --feature_augmentation
     # Compute NNs
   # Compute NNs
   python data_utils/make_hdf5_nns.py --resolution $resolution --which_dataset $dataset --split 'train' --feature_extractor 'classification' --data_root $out_path --out_path $out_path --k_nn 50
