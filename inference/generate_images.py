@@ -159,6 +159,9 @@ def main(test_config):
     z, all_feats, all_labels, all_img_paths = get_conditionings(
         test_config, generator, data
     )
+    import ipdb
+
+    ipdb.set_trace()
 
     ## Generate the images
     all_generated_images = []

@@ -300,7 +300,13 @@ def train(rank, world_size, config, dist_url):
     )
 
     # Prepare inception metrics: FID and IS
-    is_moments_prefix = "I" if config["which_dataset"] == "imagenet" else "COCO"
+    if config["which_dataset"] == "imagenet":
+        is_moments_prefix = "I"
+    elif config["which_dataset"] == "coco":
+        is_moments_prefix = "COCO"
+    else:
+        is_moments_prefix = config["which_dataset"]
+    # is_moments_prefix = "I" if config["which_dataset"] == "imagenet" else "COCO"
 
     im_filename = "%s%i_%s" % (
         is_moments_prefix,

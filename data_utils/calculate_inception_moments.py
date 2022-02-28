@@ -29,7 +29,8 @@ import data_utils.utils as utils
 import data_utils.inception_utils as inception_utils
 from tqdm import tqdm
 from argparse import ArgumentParser
-
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 def prepare_parser():
     usage = "Calculate and store inception metrics."
@@ -81,7 +82,7 @@ def prepare_parser():
     parser.add_argument(
         "--num_workers",
         type=int,
-        default=8,
+        default=4,
         help="Number of dataloader workers (default: %(default)s)",
     )
     parser.add_argument(
@@ -102,7 +103,7 @@ def prepare_parser():
         "--which_dataset",
         type=str,
         default="imagenet",
-        choices=["imagenet", "imagenet_lt", "coco"],
+        # choices=["imagenet", "imagenet_lt", "coco"],
         help="Dataset choice.",
     )
 
@@ -121,6 +122,8 @@ def run(config):
         dataset_name_prefix = "ILSVRC"
     elif config["which_dataset"] == "coco":
         dataset_name_prefix = "COCO"
+    else:
+        dataset_name_prefix = config["which_dataset"]
     test_part = False
     if config["which_dataset"] == "coco" and config["split"] == "val":
         test_part = True
@@ -173,6 +176,8 @@ def run(config):
         dataset_name_prefix = "I"
     elif config["which_dataset"] == "coco":
         dataset_name_prefix = "COCO"
+    else:
+        dataset_name_prefix = config["which_dataset"]
     np.savez(
         os.path.join(
             config["out_path"],

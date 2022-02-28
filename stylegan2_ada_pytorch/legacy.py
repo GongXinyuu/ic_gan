@@ -17,12 +17,51 @@ import copy
 import numpy as np
 import torch
 import sys
+from typing import Dict, List, Optional, Tuple, Union, Any  # noqa
+
 
 sys.path.insert(1, os.path.join(sys.path[0], "../stylegan2_ada_pytorch"))
-import dnnlib
-from torch_utils import misc
+# import dnnlib
+# from torch_utils import misc
+
+def params_and_buffers(module):
+    assert isinstance(module, torch.nn.Module)
+    return list(module.parameters()) + list(module.buffers())
+
+
+def named_params_and_buffers(module):
+    assert isinstance(module, torch.nn.Module)
+    return list(module.named_parameters()) + list(module.named_buffers())
+
+
+def copy_params_and_buffers(src_module, dst_module, require_all=False):
+    assert isinstance(src_module, torch.nn.Module)
+    assert isinstance(dst_module, torch.nn.Module)
+    src_tensors = {
+        name: tensor for name, tensor in named_params_and_buffers(src_module)
+    }
+    for name, tensor in named_params_and_buffers(dst_module):
+        assert (name in src_tensors) or (not require_all)
+        if name in src_tensors:
+            tensor.copy_(src_tensors[name].detach()).requires_grad_(
+                tensor.requires_grad
+            )
 
 # ----------------------------------------------------------------------------
+class EasyDict(dict):
+    """Convenience class that behaves like a dict but allows access with the attribute syntax."""
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
+
+    def __delattr__(self, name: str) -> None:
+        del self[name]
 
 
 def load_network_pkl(f, force_fp16=False):
@@ -59,7 +98,7 @@ def load_network_pkl(f, force_fp16=False):
             old = data[key]
             kwargs = copy.deepcopy(old.init_kwargs)
             if key.startswith("G"):
-                kwargs.synthesis_kwargs = dnnlib.EasyDict(
+                kwargs.synthesis_kwargs = EasyDict(
                     kwargs.get("synthesis_kwargs", {})
                 )
                 kwargs.synthesis_kwargs.num_fp16_res = 4
@@ -69,7 +108,7 @@ def load_network_pkl(f, force_fp16=False):
                 kwargs.conv_clamp = 256
             if kwargs != old.init_kwargs:
                 new = type(old)(**kwargs).eval().requires_grad_(False)
-                misc.copy_params_and_buffers(old, new, require_all=True)
+                copy_params_and_buffers(old, new, require_all=True)
                 data[key] = new
     return data
 
@@ -77,7 +116,7 @@ def load_network_pkl(f, force_fp16=False):
 # ----------------------------------------------------------------------------
 
 
-class _TFNetworkStub(dnnlib.EasyDict):
+class _TFNetworkStub(EasyDict):
     pass
 
 
@@ -109,7 +148,7 @@ def _collect_tf_params(tf_net):
 
 
 def _populate_module_params(module, *patterns):
-    for name, tensor in misc.named_params_and_buffers(module):
+    for name, tensor in named_params_and_buffers(module):
         found = False
         value = None
         for pattern, value_fn in zip(patterns[0::2], patterns[1::2]):
@@ -145,13 +184,13 @@ def convert_tf_generator(tf_G):
         return val if val is not None else none
 
     # Convert kwargs.
-    kwargs = dnnlib.EasyDict(
+    kwargs = EasyDict(
         z_dim=kwarg("latent_size", 512),
         c_dim=kwarg("label_size", 0),
         w_dim=kwarg("dlatent_size", 512),
         img_resolution=kwarg("resolution", 1024),
         img_channels=kwarg("num_channels", 3),
-        mapping_kwargs=dnnlib.EasyDict(
+        mapping_kwargs=EasyDict(
             num_layers=kwarg("mapping_layers", 8),
             embed_features=kwarg("label_fmaps", None),
             layer_features=kwarg("mapping_fmaps", None),
@@ -159,7 +198,7 @@ def convert_tf_generator(tf_G):
             lr_multiplier=kwarg("mapping_lrmul", 0.01),
             w_avg_beta=kwarg("w_avg_beta", 0.995, none=1),
         ),
-        synthesis_kwargs=dnnlib.EasyDict(
+        synthesis_kwargs=EasyDict(
             channel_base=kwarg("fmap_base", 16384) * 2,
             channel_max=kwarg("fmap_max", 512),
             num_fp16_res=kwarg("num_fp16_res", 0),
@@ -281,7 +320,7 @@ def convert_tf_discriminator(tf_D):
         return tf_kwargs.get(tf_name, default)
 
     # Convert kwargs.
-    kwargs = dnnlib.EasyDict(
+    kwargs = EasyDict(
         c_dim=kwarg("label_size", 0),
         img_resolution=kwarg("resolution", 1024),
         img_channels=kwarg("num_channels", 3),
@@ -291,19 +330,19 @@ def convert_tf_discriminator(tf_D):
         num_fp16_res=kwarg("num_fp16_res", 0),
         conv_clamp=kwarg("conv_clamp", None),
         cmap_dim=kwarg("mapping_fmaps", None),
-        block_kwargs=dnnlib.EasyDict(
+        block_kwargs=EasyDict(
             activation=kwarg("nonlinearity", "lrelu"),
             resample_filter=kwarg("resample_kernel", [1, 3, 3, 1]),
             freeze_layers=kwarg("freeze_layers", 0),
         ),
-        mapping_kwargs=dnnlib.EasyDict(
+        mapping_kwargs=EasyDict(
             num_layers=kwarg("mapping_layers", 0),
             embed_features=kwarg("mapping_fmaps", None),
             layer_features=kwarg("mapping_fmaps", None),
             activation=kwarg("nonlinearity", "lrelu"),
             lr_multiplier=kwarg("mapping_lrmul", 0.1),
         ),
-        epilogue_kwargs=dnnlib.EasyDict(
+        epilogue_kwargs=EasyDict(
             mbstd_group_size=kwarg("mbstd_group_size", None),
             mbstd_num_channels=kwarg("mbstd_num_features", 1),
             activation=kwarg("nonlinearity", "lrelu"),

@@ -1189,7 +1189,7 @@ def load_weights(
         print("Not loading data, experiment folder does not exist yet!")
         print(root)
         if eval:
-            raise ValueError("Make sure foder exists")
+            raise ValueError("Make sure folder exists")
         return
 
     if name_suffix:

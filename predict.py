@@ -9,7 +9,7 @@ import os
 import tempfile
 import warnings
 from pathlib import Path
-import nltk
+# import nltk
 import torch
 from torch import nn
 import torchvision.transforms as transforms
@@ -17,7 +17,7 @@ import numpy as np
 import imageio
 from PIL import Image as Image_PIL
 from scipy.stats import truncnorm
-from nltk.corpus import wordnet as wn
+# from nltk.corpus import wordnet as wn
 import cma
 import sklearn.metrics
 import cog
