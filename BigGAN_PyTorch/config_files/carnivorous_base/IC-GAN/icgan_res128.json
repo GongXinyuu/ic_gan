@@ -14,7 +14,7 @@
   "test_every": 5,
   "save_every": 1,
   "num_epochs": 3000,
-  "es_patience": 50,
+  "es_patience": 100000000,
   "shuffle": true,
 
   "G_eval_mode": true,
