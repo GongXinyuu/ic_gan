@@ -15,6 +15,49 @@ import torch
 
 import utils
 import losses
+import numpy as np
+
+
+from typing import Dict, List, Optional, Tuple, Union  # noqa
+from cleanfid.fid import compute_fid
+
+
+def denormalize_img(torch_img: torch.Tensor) -> torch.Tensor:
+    """
+    Take an image whose value is from -1 to 1, return a regular RGB image.
+    :param torch_img: N x C x H x W.
+    :return: np.ndarray (range: 0 ~ 255)
+    """
+    return torch_img.mul_(127.5).add_(127.5).clamp_(0.0, 255.0)
+
+
+def numpy_img(torch_img: torch.Tensor) -> np.ndarray:
+    return torch_img.permute(0, 2, 3, 1).to("cpu", torch.uint8).numpy()
+
+
+@torch.no_grad()
+def inference(sample, num_inception_images) -> List[np.ndarray]:
+    output_images = []
+    while len(output_images) < num_inception_images:
+        images, labels_val = sample()
+        images = numpy_img(denormalize_img(images))
+        output_images.extend(list(images))
+    return output_images
+
+
+def calculate_fid(
+    config, sample, num_inception_images
+) -> float:
+    image_list = inference(sample, num_inception_images)
+    fid_stat_name = config["dataset"].replace("_128", "").replace("_256", "").replace("meta_", "")
+    fid_score = compute_fid(
+        dataset_name=fid_stat_name,
+        dataset_res=config["resolution"],
+        np_images=image_list,
+        dataset_split="xinyu",
+    )
+    return fid_score
+
 
 
 # Dummy training function for debugging
@@ -314,14 +357,16 @@ def test(
             config["n_classes"],
             config["num_standing_accumulations"],
         )
-    if loader is not None:
-        IS_mean, IS_std, FID, stratified_FID, prdc_metrics = get_inception_metrics(
-            sample, config["num_inception_images"], num_splits=10, loader_ref=loader
-        )
-    else:
-        IS_mean, IS_std, FID, stratified_FID = get_inception_metrics(
-            sample, config["num_inception_images"], num_splits=10
-        )
+    # if loader is not None:
+    #     IS_mean, IS_std, FID, stratified_FID, prdc_metrics = get_inception_metrics(
+    #         sample, config["num_inception_images"], num_splits=10, loader_ref=loader
+    #     )
+    # else:
+    #     IS_mean, IS_std, FID, stratified_FID = get_inception_metrics(
+    #         sample, config["num_inception_images"], num_splits=10
+    #     )
+    FID = calculate_fid(config, sample, config["num_inception_images"])
+    IS_mean, IS_std = 0.1, 0.1
     print(
         "Itr %d: PYTORCH UNOFFICIAL Inception Score is %3.3f +/- %3.3f, PYTORCH UNOFFICIAL FID is %5.4f"
         % (state_dict["itr"], IS_mean, IS_std, FID)

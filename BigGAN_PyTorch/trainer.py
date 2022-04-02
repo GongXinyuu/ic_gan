@@ -18,6 +18,7 @@ import time
 import subprocess
 import re
 import sys
+from torch.utils.tensorboard import SummaryWriter
 
 sys.path.insert(1, os.path.join(sys.path[0], ".."))
 import numpy as np
@@ -253,6 +254,8 @@ def train(rank, world_size, config, dist_url):
         )
         # Write metadata
         utils.write_metadata(config["logs_root"], experiment_name, config, state_dict)
+        os.makedirs("{}/{}".format(config["logs_root"], experiment_name), exist_ok=True)
+        writer = SummaryWriter("{}/{}".format(config["logs_root"], experiment_name))
     else:
         test_log = None
         train_log = None
@@ -310,14 +313,15 @@ def train(rank, world_size, config, dist_url):
     )
     print("Using ", im_filename, "for Inception metrics.")
 
-    get_inception_metrics = inception_utils.prepare_inception_metrics(
-        im_filename,
-        samples_per_class,
-        config["parallel"],
-        config["no_fid"],
-        config["data_root"],
-        device=device,
-    )
+    # get_inception_metrics = inception_utils.prepare_inception_metrics(
+    #     im_filename,
+    #     samples_per_class,
+    #     config["parallel"],
+    #     config["no_fid"],
+    #     config["data_root"],
+    #     device=device,
+    # )
+    get_inception_metrics=None
 
     G_batch_size = config["G_batch_size"]
 
@@ -531,6 +535,7 @@ def train(rank, world_size, config, dist_url):
                 D_optim=optimizer_D,
             )
         if rank == 0:
+            writer.add_scalar("FID", FID, state_dict["itr"])
             if FID < best_FID_run:
                 best_FID_run = FID
                 state_dict["es_epoch"] = 0
