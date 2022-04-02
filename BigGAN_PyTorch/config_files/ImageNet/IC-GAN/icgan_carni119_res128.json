@@ -1,6 +1,6 @@
 {
   "experiment_name": "icgan_biggan_imagenet_carni_res128",
-  "which_dataset": "imagenet_carni_train",
+  "which_dataset": "carnivorous_base_128",
   "run_setup": "local_debug",
   "deterministic_run": true,
   "num_workers": 10,
