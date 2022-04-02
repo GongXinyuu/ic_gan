@@ -30,6 +30,9 @@ import data_utils.inception_utils as inception_utils
 from tqdm import tqdm
 from argparse import ArgumentParser
 
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 
 def prepare_parser():
     usage = "Calculate and store inception metrics."
