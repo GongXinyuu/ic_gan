@@ -4,9 +4,10 @@
 
 resolution=$2 # 64,128,256
 dataset=$1 #'imagenet', 'imagenet_lt',  'coco', [a transfer dataset, such as 'cityscapes']
-out_path=''
+out_path='imagenet_carni_data'
 path_imnet=''
-path_swav='swav_800ep_pretrain.pth.tar'
+path_im_carni_train='/home/xinyu_gong/datasets/imagenet_carni_train'
+path_swav='pretrained_models_path/swav_pretrain.pth.tar'
 path_classifier_lt='resnet50_uniform_e90.pth'
 
 
@@ -24,6 +25,19 @@ if [ $dataset = 'imagenet' ]; then
   # Compute NNs
   python data_utils/make_hdf5_nns.py --resolution $resolution --split 'train' --feature_extractor 'classification' --data_root $out_path --out_path $out_path --k_nn 50
   python data_utils/make_hdf5_nns.py --resolution $resolution --split 'train' --feature_extractor 'selfsupervised' --data_root $out_path --out_path $out_path --k_nn 50
+
+elif [ $dataset = 'imagenet_carni_train' ]; then
+  python data_utils/make_hdf5.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'train' --data_root $path_im_carni_train --out_path $out_path --feature_extractor 'classification' --feature_augmentation
+  python data_utils/make_hdf5.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'train' --data_root $path_im_carni_train --out_path $out_path --save_features_only --feature_extractor 'selfsupervised' --feature_augmentation --pretrained_model_path $path_swav
+#  python data_utils/make_hdf5.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'val' --data_root $path_im_carni_train --out_path $out_path --save_images_only
+  ## Calculate inception moments
+  python data_utils/calculate_inception_moments.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'train' --data_root $out_path --load_in_mem --out_path $out_path
+#  for split in 'train' 'val'; do
+#
+#  done
+  # Compute NNs
+  python data_utils/make_hdf5_nns.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'train' --feature_extractor 'classification' --data_root $out_path --out_path $out_path --k_nn 50
+  python data_utils/make_hdf5_nns.py --resolution $resolution --which_dataset 'imagenet_carni_train' --split 'train' --feature_extractor 'selfsupervised' --data_root $out_path --out_path $out_path --k_nn 50
 
 elif [ $dataset = 'imagenet_lt' ]; then
   python data_utils/make_hdf5.py --resolution $resolution --which_dataset 'imagenet_lt' --split 'train' --data_root $path_imnet --out_path $out_path --feature_extractor 'classification' --feature_augmentation --pretrained_model_path $path_classifier_lt
