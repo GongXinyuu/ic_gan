@@ -38,8 +38,9 @@ from sync_batchnorm import patch_replication_callback
 from data_utils import utils as data_utils
 
 
-def run(config, ddp_setup="slurm", master_node=""):
-    config["n_classes"] = 1000  # utils.nclass_dict[self.config['dataset']]
+def run(config: dict, ddp_setup="slurm", master_node=""):
+    config.get("n_classes", 1000)
+    # config["n_classes"] = 1000  # utils.nclass_dict[self.config['dataset']]
     config["G_activation"] = utils.activation_dict[config["G_nl"]]
     config["D_activation"] = utils.activation_dict[config["D_nl"]]
     config = utils.update_config_roots(config)
