@@ -7,7 +7,7 @@ dataset=$1 #'imagenet', 'imagenet_lt',  'coco', [a transfer dataset, such as 'ci
 out_path='imagenet_carni_data'
 path_imnet=''
 path_im_carni_train='/home/xinyu_gong/datasets/imagenet_carni_train'
-path_swav='pretrained_models_path/swav_pretrain.pth.tar'
+path_swav='pretrained_models_path/swav_pretrained.pth.tar'
 path_classifier_lt='resnet50_uniform_e90.pth'
 
 

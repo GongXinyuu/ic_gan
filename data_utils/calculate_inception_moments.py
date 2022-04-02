@@ -102,7 +102,7 @@ def prepare_parser():
         "--which_dataset",
         type=str,
         default="imagenet",
-        choices=["imagenet", "imagenet_lt", "coco"],
+        choices=["imagenet", "imagenet_lt", "coco", "imagenet_carni_train"],
         help="Dataset choice.",
     )
 
@@ -121,6 +121,8 @@ def run(config):
         dataset_name_prefix = "ILSVRC"
     elif config["which_dataset"] == "coco":
         dataset_name_prefix = "COCO"
+    else:
+        dataset_name_prefix = config["which_dataset"]
     test_part = False
     if config["which_dataset"] == "coco" and config["split"] == "val":
         test_part = True
@@ -173,6 +175,8 @@ def run(config):
         dataset_name_prefix = "I"
     elif config["which_dataset"] == "coco":
         dataset_name_prefix = "COCO"
+    else:
+        dataset_name_prefix = config["which_dataset"]
     np.savez(
         os.path.join(
             config["out_path"],
