@@ -49,7 +49,7 @@ def calculate_fid(
     config, sample, num_inception_images
 ) -> float:
     image_list = inference(sample, num_inception_images)
-    fid_stat_name = config["dataset"].replace("imagenet_carni_train", "carnivorous_base").replace("_128", "").replace("_256", "").replace("meta_", "")
+    fid_stat_name = config["which_dataset"].replace("imagenet_carni_train", "carnivorous_base").replace("_128", "").replace("_256", "").replace("meta_", "")
     fid_score = compute_fid(
         dataset_name=fid_stat_name,
         dataset_res=config["resolution"],
