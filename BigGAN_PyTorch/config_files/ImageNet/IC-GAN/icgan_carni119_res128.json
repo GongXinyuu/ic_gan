@@ -11,7 +11,7 @@
   "hflips": true,
   "feature_augmentation": true,
 
-  "test_every": 5,
+  "test_every": 5000,
   "save_every": 1,
   "num_epochs": 3000,
   "es_patience": 50,
