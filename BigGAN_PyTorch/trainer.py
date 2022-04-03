@@ -488,7 +488,7 @@ def train(rank, world_size, config, dist_url):
         # Increment epoch counter at end of epoch
         state_dict["epoch"] += 1
 
-        if not (state_dict["epoch"] % config["test_every"]):
+        if not (state_dict["epoch"] % config["test_every"]) and rank == 0:
             if config["G_eval_mode"]:
                 print("Switching G to eval mode...")
                 G.eval()
