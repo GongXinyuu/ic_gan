@@ -39,7 +39,7 @@ def numpy_img(torch_img: torch.Tensor) -> np.ndarray:
 def inference(sample, num_inception_images) -> List[np.ndarray]:
     output_images = []
     while len(output_images) < num_inception_images:
-        images, labels_val = sample()
+        images, labels_val, feats_ = sample()
         images = numpy_img(denormalize_img(images))
         output_images.extend(list(images))
     return output_images
